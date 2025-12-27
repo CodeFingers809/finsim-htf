@@ -260,7 +260,9 @@ export function OptimizeClient() {
                                 Sharpe
                             </span>
                             <span className="text-sm font-semibold text-[#e8eaed]">
-                                {currentPortfolio.metrics.sharpe.toFixed(2)}
+                                {currentPortfolio?.metrics?.sharpe?.toFixed(
+                                    2
+                                ) ?? "--"}
                             </span>
                         </div>
                     </div>
@@ -595,9 +597,9 @@ export function OptimizeClient() {
                                                     Sharpe
                                                 </span>
                                                 <span className="text-sm font-semibold text-[#e8eaed]">
-                                                    {portfolio.metrics.sharpe.toFixed(
+                                                    {portfolio?.metrics?.sharpe?.toFixed(
                                                         2
-                                                    )}
+                                                    ) ?? "--"}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between mt-1">
@@ -670,9 +672,9 @@ export function OptimizeClient() {
                                                     </span>
                                                 </div>
                                                 <span className="text-lg font-bold text-[#6c8cff]">
-                                                    {currentPortfolio.metrics.sharpe.toFixed(
+                                                    {currentPortfolio?.metrics?.sharpe?.toFixed(
                                                         2
-                                                    )}
+                                                    ) ?? "--"}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between p-3 rounded-lg bg-[#1a1d24]">
@@ -749,9 +751,9 @@ export function OptimizeClient() {
                                                                 : "text-[#f0b86c]"
                                                         )}
                                                     >
-                                                        {currentPortfolio.metrics.diversification_ratio.toFixed(
+                                                        {currentPortfolio?.metrics?.diversification_ratio?.toFixed(
                                                             2
-                                                        )}
+                                                        ) ?? "--"}
                                                         x
                                                     </span>
                                                 </div>
@@ -769,9 +771,9 @@ export function OptimizeClient() {
                                                         Effective # of Assets
                                                     </span>
                                                     <span className="text-sm font-semibold text-[#e8eaed]">
-                                                        {currentPortfolio.metrics.effective_assets.toFixed(
+                                                        {currentPortfolio?.metrics?.effective_assets?.toFixed(
                                                             1
-                                                        )}
+                                                        ) ?? "--"}
                                                     </span>
                                                 </div>
                                                 <p className="text-[10px] text-[#8b8f9a]">
@@ -1045,9 +1047,9 @@ export function OptimizeClient() {
                                                             Sharpe
                                                         </span>
                                                         <span className="font-semibold text-[#6c8cff]">
-                                                            {metrics.sharpe.toFixed(
+                                                            {metrics?.sharpe?.toFixed(
                                                                 2
-                                                            )}
+                                                            ) ?? "--"}
                                                         </span>
                                                     </div>
                                                 </div>

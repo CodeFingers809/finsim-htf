@@ -71,16 +71,24 @@ export function PositionsClient() {
                                     <TD>{position.symbol}</TD>
                                     <TD>{position.type}</TD>
                                     <TD>{position.quantity}</TD>
-                                    <TD>₹{position.entryPrice.toFixed(2)}</TD>
-                                    <TD>₹{position.currentPrice.toFixed(2)}</TD>
+                                    <TD>
+                                        ₹
+                                        {position?.entryPrice?.toFixed(2) ??
+                                            "--"}
+                                    </TD>
+                                    <TD>
+                                        ₹
+                                        {position?.currentPrice?.toFixed(2) ??
+                                            "--"}
+                                    </TD>
                                     <TD
                                         className={
-                                            position.pnl >= 0
+                                            (position?.pnl ?? 0) >= 0
                                                 ? "text-success"
                                                 : "text-danger"
                                         }
                                     >
-                                        ₹{position.pnl.toFixed(2)}
+                                        ₹{position?.pnl?.toFixed(2) ?? "--"}
                                     </TD>
                                     <TD>
                                         <Button

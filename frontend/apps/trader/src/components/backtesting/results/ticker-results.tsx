@@ -110,8 +110,8 @@ function TickerRow({
                                 : "text-[#f06c6c]"
                         )}
                     >
-                        {ticker.strategy_return_pct > 0 ? "+" : ""}
-                        {ticker.strategy_return_pct.toFixed(2)}%
+                        {ticker?.strategy_return_pct > 0 ? "+" : ""}
+                        {ticker?.strategy_return_pct?.toFixed(2) ?? "--"}%
                     </p>
                 </div>
 
@@ -126,8 +126,8 @@ function TickerRow({
                                 : "text-[#f06c6c]"
                         )}
                     >
-                        {ticker.buy_hold_return_pct > 0 ? "+" : ""}
-                        {ticker.buy_hold_return_pct.toFixed(2)}%
+                        {ticker?.buy_hold_return_pct > 0 ? "+" : ""}
+                        {ticker?.buy_hold_return_pct?.toFixed(2) ?? "--"}%
                     </p>
                 </div>
 
@@ -142,8 +142,8 @@ function TickerRow({
                                 : "text-[#f06c6c]"
                         )}
                     >
-                        {ticker.alpha_pct > 0 ? "+" : ""}
-                        {ticker.alpha_pct.toFixed(2)}%
+                        {ticker?.alpha_pct > 0 ? "+" : ""}
+                        {ticker?.alpha_pct?.toFixed(2) ?? "--"}%
                     </p>
                 </div>
 
@@ -182,22 +182,24 @@ function TickerRow({
                 <div className="px-6 pb-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-[#0c0d10]/50">
                     <DetailItem
                         label="Sharpe Ratio"
-                        value={ticker.sharpe_ratio.toFixed(3)}
+                        value={ticker?.sharpe_ratio?.toFixed(3) ?? "--"}
                         isPositive={ticker.sharpe_ratio >= 0}
                     />
                     <DetailItem
                         label="Win Rate"
-                        value={`${ticker.win_rate_pct.toFixed(1)}%`}
+                        value={`${ticker?.win_rate_pct?.toFixed(1) ?? "--"}%`}
                         isPositive={ticker.win_rate_pct >= 50}
                     />
                     <DetailItem
                         label="Max Drawdown"
-                        value={`${ticker.max_drawdown_pct.toFixed(2)}%`}
+                        value={`${
+                            ticker?.max_drawdown_pct?.toFixed(2) ?? "--"
+                        }%`}
                         isPositive={false}
                     />
                     <DetailItem
                         label="Profit Factor"
-                        value={ticker.profit_factor.toFixed(3)}
+                        value={ticker?.profit_factor?.toFixed(3) ?? "--"}
                         isPositive={ticker.profit_factor >= 1}
                     />
                 </div>

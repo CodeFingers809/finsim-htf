@@ -158,7 +158,7 @@ export function AgenticFetchClient() {
                         </span>
                         <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-semibold bg-[#3dd68c]/15 text-[#3dd68c]">
                             <Zap className="h-3 w-3" />
-                            {result.total_time_ms.toFixed(0)}ms
+                            {result?.total_time_ms?.toFixed(0) ?? "--"}ms
                         </div>
                         <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium bg-[#6c8cff]/15 text-[#6c8cff]">
                             {result.num_iterations} iter

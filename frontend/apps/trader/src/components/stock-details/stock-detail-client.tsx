@@ -74,17 +74,17 @@ export function StockDetailClient({
                     </div>
                     <div className="text-right">
                         <p className="text-4xl font-semibold">
-                            ₹{quote.lastPrice.toFixed(2)}
+                            ₹{quote?.lastPrice?.toFixed(2) ?? "--"}
                         </p>
                         <p
                             className={`text-sm ${
-                                quote.change >= 0
+                                (quote?.change ?? 0) >= 0
                                     ? "text-success"
                                     : "text-danger"
                             }`}
                         >
-                            {quote.change.toFixed(2)} (
-                            {quote.changePercent.toFixed(2)}%) today
+                            {quote?.change?.toFixed(2) ?? "--"} (
+                            {quote?.changePercent?.toFixed(2) ?? "--"}%) today
                         </p>
                     </div>
                 </CardHeader>

@@ -321,6 +321,8 @@ CRITICAL RULES:
 8. This is LONG-ONLY - no short selling
 9. The buy() method ONLY accepts these parameters: sl (stop loss price), tp (take profit price), size (position size)
 10. DO NOT use trail_sl, trailing_stop, or any other parameters - they are NOT supported
+11. NEVER access position attributes like position.avg_price, position.size, position.entry_price - they don't exist!
+12. Only use 'if self.position:' to check if position exists and 'self.position.close()' to close it
 
 AVAILABLE DATA:
 - self.data.Open, self.data.High, self.data.Low, self.data.Close, self.data.Volume
@@ -337,7 +339,43 @@ def get_refinement_prompt(previous_code: str, results: Dict, errors: List[str]) 
 
     error_section = ""
     if errors:
-        error_section = f"""
+        # Check for common position attribute error
+        position_error = any("'Position' object has no attribute" in err for err in errors)
+        if position_error:
+            error_section = f"""
+CRITICAL ERROR - Position Attribute Access:
+The backtesting.py library Position objects have NO accessible attributes!
+
+WRONG (causes errors):
+- position.avg_price
+- position.entry_price  
+- position.size
+- position.pnl
+
+CORRECT (the ONLY valid uses):
+- if self.position:           # Check if position exists
+- if not self.position:       # Check if no position
+- self.position.close()       # Close position
+
+For price tracking, save the entry price yourself:
+```python
+def init(self):
+    self.entry_price = None
+
+def next(self):
+    if not self.position:
+        self.entry_price = self.data.Close[-1]
+        self.buy(sl=..., tp=...)
+    elif self.position:
+        # Now you can use self.entry_price
+        profit_pct = (self.data.Close[-1] - self.entry_price) / self.entry_price * 100
+```
+
+ERRORS:
+{chr(10).join(errors[:5])}
+"""
+        else:
+            error_section = f"""
 EXECUTION ERRORS:
 {chr(10).join(errors[:5])}
 
@@ -366,6 +404,11 @@ ANALYSIS:
 2. If negative returns: Poor signal quality - add trend filter or confirmation
 3. If low win rate: Too many false signals - add volume or momentum confirmation
 4. If high drawdown: Improve stop loss placement
+
+CRITICAL REMINDER - POSITION USAGE:
+- NEVER use position.avg_price, position.entry_price, position.size or ANY position attributes
+- ONLY use: 'if self.position:' to check existence and 'self.position.close()' to exit
+- For price tracking: Use self.data.Close[-1] when entering and save it if needed
 
 Generate IMPROVED code addressing these issues. Output ONLY the Python code."""
 

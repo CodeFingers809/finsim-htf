@@ -182,12 +182,16 @@ AVAILABLE FRAMEWORKS:
    - Long-only positions
    - Use self.buy() and self.position.close()
    - Indicators must return .values (numpy arrays)
+   - Position access: Check existence with 'if self.position:', close with 'self.position.close()'
+   - DO NOT access position.avg_price or other attributes - they don't exist in backtesting.py
+   - For entry price tracking, use self.data.Close[-1] at entry time
 
 2. backtrader: Full-featured, supports shorting, complex order types
    - Both long and short positions
    - Use self.buy() and self.sell() for entries
    - Built-in indicators: bt.indicators.MACD, bt.indicators.RSI, etc.
    - Access current bar: self.data.close[0], previous: self.data.close[-1]
+   - Position attributes: self.position.size (positive for long, negative for short)
 
 CHOOSE THE RIGHT FRAMEWORK:
 - Use backtesting.py for: Simple long-only strategies, fast execution
@@ -252,11 +256,20 @@ Output: Clean, well-commented code following the examples. You must not generate
 EXECUTION ERRORS FROM PREVIOUS ITERATION:
 {execution_errors}
 
-COMMON ERROR FIXES:
-- "'Position' object has no attribute": Don't access position attributes directly in backtesting.py
+CRITICAL ERROR FIXES:
+- "'Position' object has no attribute 'avg_price'": In backtesting.py, Position objects have NO attributes
+  * Don't use: position.avg_price, position.size, position.entry_price, etc.
+  * DO use: 'if self.position:' to check if position exists
+  * DO use: 'self.position.close()' to close position
+  * For price tracking: save self.data.Close[-1] in self.init() or when entering
+  
 - "index out of bounds": Add proper data length checks (if len(self.data.Close) < N)
 - "Indicators must return numpy arrays": Ensure all indicators end with .values
 - "Short orders": Use backtrader framework for shorting, not backtesting.py
+
+FRAMEWORK RULES:
+- backtesting.py: NEVER access position attributes, only check existence and close
+- backtrader: Can use self.position.size for position info
 """
 
         prompt = f"""ITERATION {iteration}: Analyze and improve the strategy.

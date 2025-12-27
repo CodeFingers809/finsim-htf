@@ -130,12 +130,13 @@ export function ComparisonCharts({ results }: ComparisonChartsProps) {
                                                         : "text-[#f06c6c]"
                                                 )}
                                             >
-                                                {ticker.strategy_return_pct > 0
+                                                {(ticker?.strategy_return_pct ??
+                                                    0) > 0
                                                     ? "+"
                                                     : ""}
-                                                {ticker.strategy_return_pct.toFixed(
+                                                {ticker?.strategy_return_pct?.toFixed(
                                                     1
-                                                )}
+                                                ) ?? "--"}
                                                 %
                                             </span>
                                             <span className="text-[#8b8f9a]">
@@ -144,18 +145,19 @@ export function ComparisonCharts({ results }: ComparisonChartsProps) {
                                             <span
                                                 className={cn(
                                                     "font-mono",
-                                                    ticker.buy_hold_return_pct >=
-                                                        0
+                                                    (ticker?.buy_hold_return_pct ??
+                                                        0) >= 0
                                                         ? "text-[#3dd68c]"
                                                         : "text-[#f06c6c]"
                                                 )}
                                             >
-                                                {ticker.buy_hold_return_pct > 0
+                                                {(ticker?.buy_hold_return_pct ??
+                                                    0) > 0
                                                     ? "+"
                                                     : ""}
-                                                {ticker.buy_hold_return_pct.toFixed(
+                                                {ticker?.buy_hold_return_pct?.toFixed(
                                                     1
-                                                )}
+                                                ) ?? "--"}
                                                 %
                                             </span>
                                         </div>

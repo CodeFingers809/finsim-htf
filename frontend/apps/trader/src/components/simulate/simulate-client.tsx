@@ -182,8 +182,12 @@ export function SimulateClient() {
                                         : "text-[#f06c6c]"
                                 )}
                             >
-                                {result.statistics.mean_roi_pct > 0 ? "+" : ""}
-                                {result.statistics.mean_roi_pct.toFixed(2)}%
+                                {(result?.statistics?.mean_roi_pct ?? 0) > 0
+                                    ? "+"
+                                    : ""}
+                                {result?.statistics?.mean_roi_pct?.toFixed(2) ??
+                                    "--"}
+                                %
                             </span>
                         </div>
                     </div>
@@ -661,7 +665,9 @@ function SimulationResults({ result }: { result: SimulateResponse }) {
                 />
                 <StatCard
                     label="Mean Max Drawdown"
-                    value={`${stats.mean_max_drawdown_pct.toFixed(1)}%`}
+                    value={`${
+                        stats?.mean_max_drawdown_pct?.toFixed(1) ?? "--"
+                    }%`}
                     trend="down"
                     icon={<TrendingDown className="h-4 w-4 text-[#f06c6c]" />}
                 />
@@ -696,12 +702,14 @@ function SimulationResults({ result }: { result: SimulateResponse }) {
                     <div className="space-y-3">
                         <StatRow
                             label="Mean ROI"
-                            value={`${stats.mean_roi_pct.toFixed(2)}%`}
+                            value={`${
+                                stats?.mean_roi_pct?.toFixed(2) ?? "--"
+                            }%`}
                             positive={stats.mean_roi_pct >= 0}
                         />
                         <StatRow
                             label="Max ROI"
-                            value={`${stats.max_roi_pct.toFixed(2)}%`}
+                            value={`${stats?.max_roi_pct?.toFixed(2) ?? "--"}%`}
                             positive={stats.max_roi_pct >= 0}
                         />
                         <StatRow
@@ -743,21 +751,25 @@ function SimulationResults({ result }: { result: SimulateResponse }) {
                     <div className="space-y-3">
                         <StatRow
                             label="Mean Max Drawdown"
-                            value={`${stats.mean_max_drawdown_pct.toFixed(2)}%`}
+                            value={`${
+                                stats?.mean_max_drawdown_pct?.toFixed(2) ?? "--"
+                            }%`}
                             negative
                         />
                         <StatRow
                             label="Median Max Drawdown"
-                            value={`${stats.median_max_drawdown_pct.toFixed(
-                                2
-                            )}%`}
+                            value={`${
+                                stats?.median_max_drawdown_pct?.toFixed(2) ??
+                                "--"
+                            }%`}
                             negative
                         />
                         <StatRow
                             label="Worst Max Drawdown"
-                            value={`${stats.worst_max_drawdown_pct.toFixed(
-                                2
-                            )}%`}
+                            value={`${
+                                stats?.worst_max_drawdown_pct?.toFixed(2) ??
+                                "--"
+                            }%`}
                             negative
                         />
                     </div>
@@ -773,7 +785,9 @@ function SimulationResults({ result }: { result: SimulateResponse }) {
                                     Risk/Trade:
                                 </span>
                                 <span className="text-[#e8eaed]">
-                                    {params.risk_per_trade_pct.toFixed(1)}%
+                                    {params?.risk_per_trade_pct?.toFixed(1) ??
+                                        "--"}
+                                    %
                                 </span>
                             </div>
                             <div className="flex justify-between">

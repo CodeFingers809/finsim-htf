@@ -546,7 +546,9 @@ export function AgenticLoader({
                                     </span>
                                     {step.timestamp_ms && (
                                         <span className="text-[10px] text-[#6b6f7a] font-mono">
-                                            {step.timestamp_ms.toFixed(0)}ms
+                                            {step?.timestamp_ms?.toFixed(0) ??
+                                                "--"}
+                                            ms
                                         </span>
                                     )}
                                     <ChevronDown

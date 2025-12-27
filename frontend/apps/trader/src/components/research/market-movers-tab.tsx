@@ -190,7 +190,9 @@ export function MarketMoversTab() {
                                             )}
                                         >
                                             {isPositive ? "+" : ""}
-                                            {stock.changePercent.toFixed(2)}%
+                                            {stock?.changePercent?.toFixed(2) ??
+                                                "--"}
+                                            %
                                         </div>
                                     </div>
 

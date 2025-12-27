@@ -176,7 +176,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                                 className="text-[10px] bg-[#6c8cff]/10 border-[#6c8cff]/30 text-[#6c8cff]"
                             >
                                 <Zap className="h-3 w-3 mr-1" />
-                                {result.total_time_ms.toFixed(0)}ms
+                                {result?.total_time_ms?.toFixed(0) ?? "--"}ms
                             </Badge>
                         </div>
                         <p className="text-base text-[#c8cad0] leading-relaxed mb-4">
@@ -232,7 +232,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                                 </h4>
                             </div>
                             <ul className="space-y-2">
-                                {result.risk_factors.map((risk, i) => (
+                                {result.risk_factors?.map((risk, i) => (
                                     <li
                                         key={i}
                                         className="flex items-start gap-2 text-sm text-[#c8cad0]"
@@ -256,7 +256,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                                     </h4>
                                 </div>
                                 <ul className="space-y-2">
-                                    {result.opportunities.map((opp, i) => (
+                                    {result.opportunities?.map((opp, i) => (
                                         <li
                                             key={i}
                                             className="flex items-start gap-2 text-sm text-[#c8cad0]"
@@ -298,7 +298,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                                 Expanded Queries
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {result.expanded_queries.map((q, i) => (
+                                {result.expanded_queries?.map((q, i) => (
                                     <span
                                         key={i}
                                         className="px-2 py-1 text-xs rounded-lg bg-[#6c8cff]/10 text-[#6c8cff] border border-[#6c8cff]/20"
@@ -317,7 +317,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                                 Sub-Questions
                             </div>
                             <div className="space-y-1">
-                                {result.sub_questions.map((q, i) => (
+                                {result.sub_questions?.map((q, i) => (
                                     <div
                                         key={i}
                                         className="text-xs text-[#8b8f9a] flex items-start gap-2"
@@ -377,7 +377,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
             {/* Documents Grid or List */}
             {activeTab === "insights" ? (
                 <div className="grid md:grid-cols-2 gap-4">
-                    {result.documents.map((doc, index) => (
+                    {result.documents?.map((doc, index) => (
                         <InsightCard
                             key={index}
                             document={doc}
@@ -387,7 +387,7 @@ export function AgenticResults({ result }: AgenticResultsProps) {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {result.documents.map((doc, index) => (
+                    {result.documents?.map((doc, index) => (
                         <DocumentCard
                             key={index}
                             document={doc}

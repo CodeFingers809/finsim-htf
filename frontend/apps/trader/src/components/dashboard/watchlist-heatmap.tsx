@@ -169,7 +169,8 @@ export function WatchlistHeatmap({
                                         }}
                                     >
                                         <span className="text-[10px] font-medium text-white">
-                                            {sector.change.toFixed(2)}%
+                                            {sector?.change?.toFixed(2) ?? "--"}
+                                            %
                                         </span>
                                     </div>
                                 </div>
@@ -203,7 +204,7 @@ export function WatchlistHeatmap({
                                         </div>
                                     </div>
                                     <div className="text-[10px] font-semibold text-[#3dd68c]">
-                                        +{stock.change.toFixed(2)}%
+                                        +{stock?.change?.toFixed(2) ?? "--"}%
                                     </div>
                                 </div>
                             </div>
@@ -233,7 +234,7 @@ export function WatchlistHeatmap({
                                         </div>
                                     </div>
                                     <div className="text-[10px] font-semibold text-[#f06c6c]">
-                                        {stock.change.toFixed(2)}%
+                                        {stock?.change?.toFixed(2) ?? "--"}%
                                     </div>
                                 </div>
                             </div>

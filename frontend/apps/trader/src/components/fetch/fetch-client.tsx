@@ -94,7 +94,9 @@ export function FetchClient() {
                         </span>
                         <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-semibold bg-[#6c8cff]/15 text-[#6c8cff]">
                             <Zap className="h-3 w-3" />
-                            {fetchMutation.data.search_time_ms.toFixed(1)}ms
+                            {fetchMutation?.data?.search_time_ms?.toFixed(1) ??
+                                "--"}
+                            ms
                         </div>
                     </div>
                 )

@@ -52,7 +52,8 @@ async function fetchWatchlists(): Promise<Watchlist[]> {
     if (!response.ok) {
         throw new Error("Unable to fetch watchlists");
     }
-    return response.json();
+    const data = await response.json();
+    return data.watchlists || [];
 }
 
 async function fetchQuotes(symbols: string[]): Promise<MarketQuote[]> {
@@ -99,7 +100,7 @@ export function ResearchClient() {
     const activeWatchlist = watchlists.find(
         (watchlist) => watchlist._id === activeWatchlistId
     );
-    const symbols = activeWatchlist?.stocks.map((stock) => stock.symbol) ?? [];
+    const symbols = activeWatchlist?.stocks?.map((stock) => stock.symbol) ?? [];
 
     const quotesQuery = useQuery({
         queryKey: ["quotes", symbols.join(",")],

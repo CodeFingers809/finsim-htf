@@ -31,9 +31,9 @@ export function PortfolioOverview({
             <MetricCard
                 icon={isPositive ? TrendingUp : TrendingDown}
                 label="Portfolio Return"
-                value={`${
-                    isPositive ? "+" : ""
-                }${metrics.portfolio_return_pct.toFixed(2)}%`}
+                value={`${isPositive ? "+" : ""}${
+                    metrics?.portfolio_return_pct?.toFixed(2) ?? "--"
+                }%`}
                 isPositive={isPositive}
             />
             <MetricCard
@@ -48,13 +48,13 @@ export function PortfolioOverview({
             <MetricCard
                 icon={Activity}
                 label="Win Rate"
-                value={`${metrics.avg_win_rate_pct.toFixed(1)}%`}
+                value={`${metrics?.avg_win_rate_pct?.toFixed(1) ?? "--"}%`}
                 subValue={`${metrics.total_trades} trades`}
             />
             <MetricCard
                 icon={BarChart2}
                 label="Sharpe Ratio"
-                value={metrics.avg_sharpe_ratio.toFixed(2)}
+                value={metrics?.avg_sharpe_ratio?.toFixed(2) ?? "--"}
                 subValue={`${metrics.profitable_tickers}/${metrics.total_tickers} profitable`}
                 isPositive={metrics.avg_sharpe_ratio >= 0}
             />
@@ -63,13 +63,13 @@ export function PortfolioOverview({
             <MetricCard
                 icon={Target}
                 label="Max Drawdown"
-                value={`${metrics.avg_max_drawdown_pct.toFixed(2)}%`}
+                value={`${metrics?.avg_max_drawdown_pct?.toFixed(2) ?? "--"}%`}
                 isPositive={false}
             />
             <MetricCard
                 icon={Shield}
                 label="Robustness Score"
-                value={`${metrics.robustness_score.toFixed(1)}/100`}
+                value={`${metrics?.robustness_score?.toFixed(1) ?? "--"}/100`}
                 isPositive={metrics.robustness_score >= 50}
             />
             <MetricCard

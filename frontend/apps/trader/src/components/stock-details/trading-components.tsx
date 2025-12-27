@@ -521,14 +521,14 @@ export function MarketDepth({
                         className="grid grid-cols-4 gap-1 px-2 py-1.5 text-[11px] font-mono border-b border-border/20"
                     >
                         <span className="text-success">
-                            {bid.price.toFixed(2)}
+                            {bid?.price?.toFixed(2) ?? "--"}
                         </span>
                         <span className="text-center text-text-secondary">
-                            {bid.orders}
+                            {bid?.orders ?? "--"}
                         </span>
-                        <span className="text-center">{bid.qty}</span>
+                        <span className="text-center">{bid?.qty ?? "--"}</span>
                         <span className="text-right text-danger">
-                            {defaultAsks[idx]?.price.toFixed(2) || "-"}
+                            {defaultAsks[idx]?.price?.toFixed(2) ?? "-"}
                         </span>
                     </div>
                 ))}
@@ -621,16 +621,16 @@ export function WatchlistSidebar({
                                         : "text-[#f06c6c] bg-[#f06c6c]/10"
                                 )}
                             >
-                                {stock.change >= 0 ? "+" : ""}
-                                {stock.changePercent.toFixed(2)}%
+                                {(stock?.change ?? 0) >= 0 ? "+" : ""}
+                                {stock?.changePercent?.toFixed(2) ?? "--"}%
                             </span>
                         </div>
                         <div className="flex items-center justify-between mt-1.5">
                             <span className="text-[11px] lg:text-xs text-[#5c606c] truncate max-w-[120px] lg:max-w-[140px]">
-                                {stock.name}
+                                {stock?.name ?? ""}
                             </span>
                             <span className="text-xs lg:text-sm font-mono text-[#8b8f9a]">
-                                ₹{stock.price.toFixed(2)}
+                                ₹{stock?.price?.toFixed(2) ?? "--"}
                             </span>
                         </div>
                     </button>

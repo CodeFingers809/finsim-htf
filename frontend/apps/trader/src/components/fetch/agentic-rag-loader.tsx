@@ -356,9 +356,11 @@ export function AgenticRagLoader({
                                 </h3>
                                 <p className="text-xs text-[#8b8f9a]">
                                     {result
-                                        ? `Completed in ${result.total_time_ms.toFixed(
-                                              0
-                                          )}ms`
+                                        ? `Completed in ${
+                                              result?.total_time_ms?.toFixed(
+                                                  0
+                                              ) ?? "--"
+                                          }ms`
                                         : `Step ${steps.length} • Processing...`}
                                 </p>
                             </div>
@@ -401,7 +403,7 @@ export function AgenticRagLoader({
                                     <span className="px-2 py-1 text-xs rounded bg-[#2d303a] text-[#8b8f9a]">
                                         {result.original_query.slice(0, 30)}...
                                     </span>
-                                    {result.expanded_queries.map(
+                                    {result.expanded_queries?.map(
                                         (q: string, i: number) => (
                                             <span
                                                 key={i}
@@ -478,7 +480,8 @@ export function AgenticRagLoader({
                                         {step.title}
                                     </span>
                                     <span className="text-[10px] text-[#6b6f7a] font-mono">
-                                        {step.timestamp_ms.toFixed(0)}ms
+                                        {step?.timestamp_ms?.toFixed(0) ?? "--"}
+                                        ms
                                     </span>
                                     <ChevronDown
                                         className={cn(

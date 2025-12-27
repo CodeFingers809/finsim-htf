@@ -211,10 +211,10 @@ export function WatchlistPanel({
             {/* Stock List */}
             <div className="space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
                 {isQuotesLoading &&
-                activeWatchlist?.stocks.length &&
+                activeWatchlist?.stocks?.length &&
                 Object.keys(quotes).length === 0 ? (
                     <div className="space-y-2">
-                        {activeWatchlist.stocks.map((stock) => (
+                        {activeWatchlist?.stocks?.map((stock) => (
                             <div
                                 key={stock.symbol}
                                 className="rounded-xl border border-[#2d303a]/40 bg-[#1a1d24] p-3"
@@ -241,7 +241,7 @@ export function WatchlistPanel({
                         ))}
                     </div>
                 ) : (
-                    activeWatchlist?.stocks.map((stock) => {
+                    activeWatchlist?.stocks?.map((stock) => {
                         const quote = quotes[stock.symbol];
                         const positive = (quote?.change ?? 0) >= 0;
                         return (
@@ -260,9 +260,8 @@ export function WatchlistPanel({
                                         </div>
                                         <p className="text-lg font-bold font-mono text-[#e8eaed] mt-0.5">
                                             ₹
-                                            {quote
-                                                ? quote.lastPrice.toFixed(2)
-                                                : "--"}
+                                            {quote?.lastPrice?.toFixed(2) ??
+                                                "--"}
                                         </p>
                                     </div>
                                     <div className="text-right flex-shrink-0">
@@ -275,12 +274,10 @@ export function WatchlistPanel({
                                             )}
                                         >
                                             {positive ? "+" : ""}
-                                            {quote
-                                                ? quote.change.toFixed(2)
-                                                : "--"}
+                                            {quote?.change?.toFixed(2) ?? "--"}
                                         </div>
                                         <p className="text-[11px] text-[#8b8f9a] mt-1">
-                                            {quote
+                                            {quote?.changePercent
                                                 ? `${
                                                       positive ? "+" : ""
                                                   }${quote.changePercent.toFixed(
@@ -318,7 +315,7 @@ export function WatchlistPanel({
                         );
                     })
                 )}
-                {!isQuotesLoading && !activeWatchlist?.stocks.length && (
+                {!isQuotesLoading && !activeWatchlist?.stocks?.length && (
                     <div className="text-center py-8 text-sm text-[#8b8f9a]">
                         Add your first symbol to start tracking live moves.
                     </div>
