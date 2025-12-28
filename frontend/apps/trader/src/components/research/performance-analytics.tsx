@@ -328,7 +328,7 @@ export function PerformanceAnalytics({
                     Stock Returns ({selectedPeriod})
                 </h4>
 
-                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                <div className="space-y-2 overflow-y-auto pr-1">
                     {stocksWithPerformance.map((stock) => {
                         const isPositive = stock.currentReturn >= 0;
                         const barWidth = Math.min(

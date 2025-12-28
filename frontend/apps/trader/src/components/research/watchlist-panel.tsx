@@ -209,7 +209,7 @@ export function WatchlistPanel({
             </div>
 
             {/* Stock List */}
-            <div className="space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1">
                 {isQuotesLoading &&
                 activeWatchlist?.stocks?.length &&
                 Object.keys(quotes).length === 0 ? (
