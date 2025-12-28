@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-
-// In-memory storage for demo purposes
-// In production, replace with database calls
-const watchlistsStore = new Map<string, Watchlist[]>();
+import { getDatabase } from "@/lib/db/mongodb";
+import { ObjectId } from "mongodb";
 
 export interface WatchlistStock {
     symbol: string;
@@ -23,8 +21,19 @@ export interface Watchlist {
  */
 export async function getWatchlists(userId: string): Promise<NextResponse> {
     try {
-        const watchlists = watchlistsStore.get(userId) || [];
-        return NextResponse.json({ watchlists });
+        const db = await getDatabase();
+        const watchlists = await db
+            .collection("watchlists")
+            .find({ userId })
+            .toArray();
+
+        // Convert ObjectId to string for _id
+        const formattedWatchlists = watchlists.map((w) => ({
+            ...w,
+            _id: w._id.toString(),
+        }));
+
+        return NextResponse.json({ watchlists: formattedWatchlists });
     } catch (error) {
         console.error("Error getting watchlists:", error);
         return NextResponse.json(
@@ -42,18 +51,19 @@ export async function createWatchlist(
     name: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
 
         // Check if watchlist with same name exists
-        if (userWatchlists.some((w) => w.name === name)) {
+        const existing = await collection.findOne({ userId, name });
+        if (existing) {
             return NextResponse.json(
                 { error: "Watchlist with this name already exists" },
                 { status: 400 }
             );
         }
 
-        const newWatchlist: Watchlist = {
-            _id: `wl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        const newWatchlist = {
             userId,
             name,
             stocks: [],
@@ -61,10 +71,17 @@ export async function createWatchlist(
             updatedAt: new Date().toISOString(),
         };
 
-        userWatchlists.push(newWatchlist);
-        watchlistsStore.set(userId, userWatchlists);
+        const result = await collection.insertOne(newWatchlist);
 
-        return NextResponse.json({ watchlist: newWatchlist }, { status: 201 });
+        return NextResponse.json(
+            {
+                watchlist: {
+                    ...newWatchlist,
+                    _id: result.insertedId.toString(),
+                },
+            },
+            { status: 201 }
+        );
     } catch (error) {
         console.error("Error creating watchlist:", error);
         return NextResponse.json(
@@ -83,31 +100,47 @@ export async function updateWatchlistName(
     name: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
-        const watchlist = userWatchlists.find((w) => w._id === watchlistId);
-
-        if (!watchlist) {
-            return NextResponse.json(
-                { error: "Watchlist not found" },
-                { status: 404 }
-            );
-        }
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
 
         // Check if another watchlist with same name exists
-        if (
-            userWatchlists.some((w) => w.name === name && w._id !== watchlistId)
-        ) {
+        const existing = await collection.findOne({
+            userId,
+            name,
+            _id: { $ne: new ObjectId(watchlistId) },
+        });
+
+        if (existing) {
             return NextResponse.json(
                 { error: "Watchlist with this name already exists" },
                 { status: 400 }
             );
         }
 
-        watchlist.name = name;
-        watchlist.updatedAt = new Date().toISOString();
-        watchlistsStore.set(userId, userWatchlists);
+        const result = await collection.findOneAndUpdate(
+            { _id: new ObjectId(watchlistId), userId },
+            {
+                $set: {
+                    name,
+                    updatedAt: new Date().toISOString(),
+                },
+            },
+            { returnDocument: "after" }
+        );
 
-        return NextResponse.json({ watchlist });
+        if (!result) {
+            return NextResponse.json(
+                { error: "Watchlist not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({
+            watchlist: {
+                ...result,
+                _id: result._id.toString(),
+            },
+        });
     } catch (error) {
         console.error("Error updating watchlist:", error);
         return NextResponse.json(
@@ -125,19 +158,21 @@ export async function deleteWatchlist(
     userId: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
-        const filteredWatchlists = userWatchlists.filter(
-            (w) => w._id !== watchlistId
-        );
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
 
-        if (filteredWatchlists.length === userWatchlists.length) {
+        const result = await collection.deleteOne({
+            _id: new ObjectId(watchlistId),
+            userId,
+        });
+
+        if (result.deletedCount === 0) {
             return NextResponse.json(
                 { error: "Watchlist not found" },
                 { status: 404 }
             );
         }
 
-        watchlistsStore.set(userId, filteredWatchlists);
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Error deleting watchlist:", error);
@@ -157,8 +192,13 @@ export async function addStockToWatchlist(
     symbol: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
-        const watchlist = userWatchlists.find((w) => w._id === watchlistId);
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
+
+        const watchlist = await collection.findOne({
+            _id: new ObjectId(watchlistId),
+            userId,
+        });
 
         if (!watchlist) {
             return NextResponse.json(
@@ -168,21 +208,42 @@ export async function addStockToWatchlist(
         }
 
         // Check if stock already exists
-        if (watchlist.stocks.some((s) => s.symbol === symbol)) {
+        if (watchlist.stocks?.some((s: any) => s.symbol === symbol)) {
             return NextResponse.json(
                 { error: "Stock already in watchlist" },
                 { status: 400 }
             );
         }
 
-        watchlist.stocks.push({
-            symbol,
-            addedAt: new Date().toISOString(),
-        });
-        watchlist.updatedAt = new Date().toISOString();
-        watchlistsStore.set(userId, userWatchlists);
+        const result = await collection.findOneAndUpdate(
+            { _id: new ObjectId(watchlistId), userId },
+            {
+                $push: {
+                    stocks: {
+                        symbol,
+                        addedAt: new Date().toISOString(),
+                    },
+                } as any,
+                $set: {
+                    updatedAt: new Date().toISOString(),
+                },
+            },
+            { returnDocument: "after" }
+        );
 
-        return NextResponse.json({ watchlist });
+        if (!result) {
+            return NextResponse.json(
+                { error: "Failed to add stock" },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            watchlist: {
+                ...result,
+                _id: result._id.toString(),
+            },
+        });
     } catch (error) {
         console.error("Error adding stock to watchlist:", error);
         return NextResponse.json(
@@ -201,21 +262,35 @@ export async function removeStockFromWatchlist(
     symbol: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
-        const watchlist = userWatchlists.find((w) => w._id === watchlistId);
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
 
-        if (!watchlist) {
+        const result = await collection.findOneAndUpdate(
+            { _id: new ObjectId(watchlistId), userId },
+            {
+                $pull: {
+                    stocks: { symbol },
+                } as any,
+                $set: {
+                    updatedAt: new Date().toISOString(),
+                },
+            },
+            { returnDocument: "after" }
+        );
+
+        if (!result) {
             return NextResponse.json(
                 { error: "Watchlist not found" },
                 { status: 404 }
             );
         }
 
-        watchlist.stocks = watchlist.stocks.filter((s) => s.symbol !== symbol);
-        watchlist.updatedAt = new Date().toISOString();
-        watchlistsStore.set(userId, userWatchlists);
-
-        return NextResponse.json({ watchlist });
+        return NextResponse.json({
+            watchlist: {
+                ...result,
+                _id: result._id.toString(),
+            },
+        });
     } catch (error) {
         console.error("Error removing stock from watchlist:", error);
         return NextResponse.json(
@@ -233,8 +308,13 @@ export async function getWatchlist(
     userId: string
 ): Promise<NextResponse> {
     try {
-        const userWatchlists = watchlistsStore.get(userId) || [];
-        const watchlist = userWatchlists.find((w) => w._id === watchlistId);
+        const db = await getDatabase();
+        const collection = db.collection("watchlists");
+
+        const watchlist = await collection.findOne({
+            _id: new ObjectId(watchlistId),
+            userId,
+        });
 
         if (!watchlist) {
             return NextResponse.json(
@@ -243,7 +323,12 @@ export async function getWatchlist(
             );
         }
 
-        return NextResponse.json({ watchlist });
+        return NextResponse.json({
+            watchlist: {
+                ...watchlist,
+                _id: watchlist._id.toString(),
+            },
+        });
     } catch (error) {
         console.error("Error getting watchlist:", error);
         return NextResponse.json(

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (FMP_API_KEY) {
       try {
         const movers = await fetchFromFMP(type, FMP_API_KEY);
-        console.log("FMP market movers fetched:", movers);
+        // console.log("FMP market movers fetched:", movers);
         if (movers.length > 0) {
           return NextResponse.json(movers);
         }
@@ -56,7 +56,7 @@ async function fetchFromFMP(type: string, apiKey: string): Promise<MoverStock[]>
       next: { revalidate: 60 }, // Cache for 1 minute (market movers change frequently)
     });
 
-    console.log("FMP market movers response:", response);
+    // console.log("FMP market movers response:", response);
 
     if (!response.ok) return [];
     const data = await response.json();

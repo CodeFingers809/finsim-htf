@@ -66,9 +66,9 @@ async function fetchQuotes(symbols: string[]): Promise<MarketQuote[]> {
 
 export function ResearchClient() {
     const queryClient = useQueryClient();
-    const [leftPanelTab, setLeftPanelTab] = useState<
-        "watchlist" | "funds" | "portfolio"
-    >("watchlist");
+    const [leftPanelTab, setLeftPanelTab] = useState<"watchlist" | "portfolio">(
+        "watchlist"
+    );
     const [rightPanelTab, setRightPanelTab] = useState<
         "overview" | "analysis" | "technical" | "news"
     >("overview");
@@ -88,7 +88,7 @@ export function ResearchClient() {
     const watchlistQuery = useQuery({
         queryKey: ["watchlists"],
         queryFn: fetchWatchlists,
-        refetchInterval: 30_000,
+        refetchInterval: 300000, // Refresh every 5 minutes instead of 30 seconds
     });
 
     useEffect(() => {
@@ -106,7 +106,7 @@ export function ResearchClient() {
         queryKey: ["quotes", symbols.join(",")],
         queryFn: () => fetchQuotes(symbols),
         enabled: symbols.length > 0,
-        refetchInterval: 8000,
+        refetchInterval: 120000, // Refresh every 2 minutes instead of 8 seconds
     });
 
     const quotesRecord = useMemo(() => {
@@ -197,21 +197,6 @@ export function ResearchClient() {
             ),
     });
 
-    // Calculate total portfolio value for header display
-    const totalValue = useMemo(() => {
-        return Object.values(quotesRecord).reduce(
-            (sum, quote) => sum + (quote.lastPrice || 0),
-            0
-        );
-    }, [quotesRecord]);
-
-    const totalChange = useMemo(() => {
-        return Object.values(quotesRecord).reduce(
-            (sum, quote) => sum + (quote.change || 0),
-            0
-        );
-    }, [quotesRecord]);
-
     return (
         <TerminalLayout
             title={
@@ -226,29 +211,6 @@ export function ResearchClient() {
                     >
                         {symbols.length} stocks
                     </Badge>
-                </div>
-            }
-            centerContent={
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1a1d24]/80 border border-[#2d303a]/40">
-                    <span className="text-xs text-[#8b8f9a]">
-                        Portfolio Value
-                    </span>
-                    <span className="text-lg font-bold font-mono text-[#e8eaed]">
-                        $
-                        {totalValue.toLocaleString("en-US", {
-                            maximumFractionDigits: 2,
-                        })}
-                    </span>
-                    <div
-                        className={cn(
-                            "flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-semibold",
-                            totalChange >= 0
-                                ? "bg-[#3dd68c]/15 text-[#3dd68c]"
-                                : "bg-[#f06c6c]/15 text-[#f06c6c]"
-                        )}
-                    >
-                        {totalChange >= 0 ? "+" : ""}${totalChange.toFixed(2)}
-                    </div>
                 </div>
             }
             rightActions={
@@ -291,11 +253,6 @@ export function ResearchClient() {
                                         id: "watchlist",
                                         label: "Watchlist",
                                         icon: Target,
-                                    },
-                                    {
-                                        id: "funds",
-                                        label: "Funds",
-                                        icon: Wallet,
                                     },
                                     {
                                         id: "portfolio",
@@ -342,11 +299,6 @@ export function ResearchClient() {
                                         quotes={quotesRecord}
                                         isQuotesLoading={quotesQuery.isLoading}
                                     />
-                                </div>
-                            )}
-                            {leftPanelTab === "funds" && (
-                                <div className="p-4">
-                                    <AccountSummary />
                                 </div>
                             )}
                             {leftPanelTab === "portfolio" && (

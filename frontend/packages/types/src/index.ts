@@ -138,5 +138,6 @@ export type MarketQuote = {
     open: number;
     volume: number;
     previousClose: number;
+    currency?: string;
 };
 

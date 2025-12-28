@@ -66,7 +66,7 @@ async function fetchFromFMP(symbol: string, apiKey: string, limit: number): Prom
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
-    console.log("data", await response.json());
+    // console.log("data", await response.json());
 
     if (!response.ok) return [];
     const data = await response.json();

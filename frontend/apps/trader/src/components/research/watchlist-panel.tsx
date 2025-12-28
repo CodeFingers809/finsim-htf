@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Watchlist } from "@trader/types";
 import { Plus, Search, Trash2, X, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { cn, getCurrencySymbol } from "@/lib/utils/cn";
 import type { MarketQuote } from "@trader/types";
 
 interface SearchResult {
@@ -241,79 +241,93 @@ export function WatchlistPanel({
                         ))}
                     </div>
                 ) : (
-                    activeWatchlist?.stocks?.map((stock) => {
-                        const quote = quotes[stock.symbol];
-                        const positive = (quote?.change ?? 0) >= 0;
-                        return (
-                            <div
-                                key={stock.symbol}
-                                className="group rounded-xl border border-[#2d303a]/40 bg-[#1a1d24] p-3 cursor-pointer transition-all duration-200 hover:border-[#6c8cff]/40 hover:bg-[#1e2028]"
-                                onClick={() => handleStockClick(stock.symbol)}
-                            >
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-1.5">
-                                            <p className="text-xs font-medium uppercase tracking-wide text-[#e8eaed]">
-                                                {stock.symbol}
+                    activeWatchlist?.stocks
+                        // Deduplicate stocks by symbol
+                        ?.filter(
+                            (stock, index, self) =>
+                                self.findIndex(
+                                    (s) => s.symbol === stock.symbol
+                                ) === index
+                        )
+                        ?.map((stock) => {
+                            const quote = quotes[stock.symbol];
+                            const positive = (quote?.change ?? 0) >= 0;
+                            return (
+                                <div
+                                    key={stock.symbol}
+                                    className="group rounded-xl border border-[#2d303a]/40 bg-[#1a1d24] p-3 cursor-pointer transition-all duration-200 hover:border-[#6c8cff]/40 hover:bg-[#1e2028]"
+                                    onClick={() =>
+                                        handleStockClick(stock.symbol)
+                                    }
+                                >
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="text-xs font-medium uppercase tracking-wide text-[#e8eaed]">
+                                                    {stock.symbol}
+                                                </p>
+                                                <ExternalLink className="h-3 w-3 text-[#6c8cff] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                                            </div>
+                                            <p className="text-lg font-bold font-mono text-[#e8eaed] mt-0.5">
+                                                {getCurrencySymbol(
+                                                    quote?.currency
+                                                )}
+                                                {quote?.lastPrice?.toFixed(2) ??
+                                                    "--"}
                                             </p>
-                                            <ExternalLink className="h-3 w-3 text-[#6c8cff] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                                         </div>
-                                        <p className="text-lg font-bold font-mono text-[#e8eaed] mt-0.5">
-                                            ₹
-                                            {quote?.lastPrice?.toFixed(2) ??
+                                        <div className="text-right flex-shrink-0">
+                                            <div
+                                                className={cn(
+                                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold",
+                                                    positive
+                                                        ? "bg-[#3dd68c]/15 text-[#3dd68c]"
+                                                        : "bg-[#f06c6c]/15 text-[#f06c6c]"
+                                                )}
+                                            >
+                                                {positive ? "+" : ""}
+                                                {quote?.change?.toFixed(2) ??
+                                                    "--"}
+                                            </div>
+                                            <p className="text-[11px] text-[#8b8f9a] mt-1">
+                                                {quote?.changePercent
+                                                    ? `${
+                                                          positive ? "+" : ""
+                                                      }${quote.changePercent.toFixed(
+                                                          2
+                                                      )}%`
+                                                    : "0%"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 flex items-center justify-between text-[10px] text-[#8b8f9a]">
+                                        <span>O: {quote?.open ?? "--"}</span>
+                                        <span>H: {quote?.dayHigh ?? "--"}</span>
+                                        <span>L: {quote?.dayLow ?? "--"}</span>
+                                        <span>
+                                            Vol:{" "}
+                                            {quote?.volume?.toLocaleString() ??
                                                 "--"}
-                                        </p>
+                                        </span>
                                     </div>
-                                    <div className="text-right flex-shrink-0">
-                                        <div
-                                            className={cn(
-                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold",
-                                                positive
-                                                    ? "bg-[#3dd68c]/15 text-[#3dd68c]"
-                                                    : "bg-[#f06c6c]/15 text-[#f06c6c]"
-                                            )}
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <span className="text-[10px] text-[#8b8f9a]">
+                                            Prev: {quote?.previousClose ?? "--"}
+                                        </span>
+                                        <button
+                                            className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-[#f06c6c] hover:bg-[#f06c6c]/10 transition-colors"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onRemoveSymbol(stock.symbol);
+                                            }}
                                         >
-                                            {positive ? "+" : ""}
-                                            {quote?.change?.toFixed(2) ?? "--"}
-                                        </div>
-                                        <p className="text-[11px] text-[#8b8f9a] mt-1">
-                                            {quote?.changePercent
-                                                ? `${
-                                                      positive ? "+" : ""
-                                                  }${quote.changePercent.toFixed(
-                                                      2
-                                                  )}%`
-                                                : "0%"}
-                                        </p>
+                                            <Trash2 className="h-3 w-3" />{" "}
+                                            Remove
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="mt-3 flex items-center justify-between text-[10px] text-[#8b8f9a]">
-                                    <span>O: {quote?.open ?? "--"}</span>
-                                    <span>H: {quote?.dayHigh ?? "--"}</span>
-                                    <span>L: {quote?.dayLow ?? "--"}</span>
-                                    <span>
-                                        Vol:{" "}
-                                        {quote?.volume?.toLocaleString() ??
-                                            "--"}
-                                    </span>
-                                </div>
-                                <div className="mt-2 flex items-center justify-between">
-                                    <span className="text-[10px] text-[#8b8f9a]">
-                                        Prev: {quote?.previousClose ?? "--"}
-                                    </span>
-                                    <button
-                                        className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-[#f06c6c] hover:bg-[#f06c6c]/10 transition-colors"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onRemoveSymbol(stock.symbol);
-                                        }}
-                                    >
-                                        <Trash2 className="h-3 w-3" /> Remove
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })
+                            );
+                        })
                 )}
                 {!isQuotesLoading && !activeWatchlist?.stocks?.length && (
                     <div className="text-center py-8 text-sm text-[#8b8f9a]">

@@ -147,9 +147,7 @@ export function TerminalLayout({
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-hidden">
-                {children}
-            </div>
+            <div className="flex-1 overflow-hidden">{children}</div>
         </div>
     );
 }

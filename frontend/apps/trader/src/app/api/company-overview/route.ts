@@ -1,85 +1,97 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_COMPANY_OVERVIEW } from "@/lib/mock-data";
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const symbol = searchParams.get("symbol");
+    const searchParams = request.nextUrl.searchParams;
+    const symbol = searchParams.get("symbol");
 
-  if (!symbol) {
-    return NextResponse.json({ error: "No symbol provided" }, { status: 400 });
-  }
-
-  try {
-    // Alpha Vantage Company Overview (FREE)
-    const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
-    if (ALPHA_VANTAGE_API_KEY) {
-      const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
-      
-      const response = await fetch(url, {
-        next: { revalidate: 86400 }, // Cache for 24 hours
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.Symbol) {
-          return NextResponse.json({
-            symbol: data.Symbol,
-            assetType: data.AssetType,
-            name: data.Name,
-            description: data.Description,
-            cik: data.CIK,
-            exchange: data.Exchange,
-            currency: data.Currency,
-            country: data.Country,
-            sector: data.Sector,
-            industry: data.Industry,
-            address: data.Address,
-            fiscalYearEnd: data.FiscalYearEnd,
-            latestQuarter: data.LatestQuarter,
-            marketCapitalization: parseFloat(data.MarketCapitalization),
-            ebitda: parseFloat(data.EBITDA),
-            peRatio: parseFloat(data.PERatio),
-            pegRatio: parseFloat(data.PEGRatio),
-            bookValue: parseFloat(data.BookValue),
-            dividendPerShare: parseFloat(data.DividendPerShare),
-            dividendYield: parseFloat(data.DividendYield),
-            eps: parseFloat(data.EPS),
-            revenuePerShareTTM: parseFloat(data.RevenuePerShareTTM),
-            profitMargin: parseFloat(data.ProfitMargin),
-            operatingMarginTTM: parseFloat(data.OperatingMarginTTM),
-            returnOnAssetsTTM: parseFloat(data.ReturnOnAssetsTTM),
-            returnOnEquityTTM: parseFloat(data.ReturnOnEquityTTM),
-            revenueTTM: parseFloat(data.RevenueTTM),
-            grossProfitTTM: parseFloat(data.GrossProfitTTM),
-            dilutedEPSTTM: parseFloat(data.DilutedEPSTTM),
-            quarterlyEarningsGrowthYOY: parseFloat(data.QuarterlyEarningsGrowthYOY),
-            quarterlyRevenueGrowthYOY: parseFloat(data.QuarterlyRevenueGrowthYOY),
-            analystTargetPrice: parseFloat(data.AnalystTargetPrice),
-            trailingPE: parseFloat(data.TrailingPE),
-            forwardPE: parseFloat(data.ForwardPE),
-            priceToSalesRatioTTM: parseFloat(data.PriceToSalesRatioTTM),
-            priceToBookRatio: parseFloat(data.PriceToBookRatio),
-            evToRevenue: parseFloat(data.EVToRevenue),
-            evToEBITDA: parseFloat(data.EVToEBITDA),
-            beta: parseFloat(data.Beta),
-            week52High: parseFloat(data["52WeekHigh"]),
-            week52Low: parseFloat(data["52WeekLow"]),
-            day50MovingAverage: parseFloat(data["50DayMovingAverage"]),
-            day200MovingAverage: parseFloat(data["200DayMovingAverage"]),
-            sharesOutstanding: parseFloat(data.SharesOutstanding),
-            dividendDate: data.DividendDate,
-            exDividendDate: data.ExDividendDate,
-          });
-        }
-      }
+    if (!symbol) {
+        return NextResponse.json(
+            { error: "No symbol provided" },
+            { status: 400 }
+        );
     }
 
-    // Return mock data if no API data available
-    return NextResponse.json({ ...MOCK_COMPANY_OVERVIEW, Symbol: symbol });
-  } catch (error) {
-    console.error("Error fetching company overview:", error);
-    // Return mock data on error
-    return NextResponse.json({ ...MOCK_COMPANY_OVERVIEW, Symbol: symbol });
-  }
+    try {
+        // Use backend yfinance API for company info
+        const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+        const url = `${BACKEND_URL}/stock/${symbol}/info`;
+
+        const response = await fetch(url, {
+            cache: "no-store",
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            if (result.status === "success" && result.data) {
+                const info = result.data;
+
+                return NextResponse.json({
+                    symbol: info.symbol || symbol,
+                    assetType: "Common Stock",
+                    name: info.longName || info.shortName || symbol,
+                    description: info.longBusinessSummary || "",
+                    exchange: info.exchange || "",
+                    currency: info.currency || "USD",
+                    country: info.country || "",
+                    sector: info.sector || "",
+                    industry: info.industry || "",
+                    address: info.address1 || "",
+                    website: info.website || "",
+                    ceo: "",
+                    employees: info.fullTimeEmployees || 0,
+                    fiscalYearEnd: "",
+                    latestQuarter: "",
+                    marketCapitalization: info.marketCap || 0,
+                    ebitda: info.ebitda || 0,
+                    peRatio: info.trailingPE || info.forwardPE || 0,
+                    pegRatio: info.pegRatio || 0,
+                    bookValue: info.bookValue || 0,
+                    dividendPerShare: info.dividendRate || 0,
+                    dividendYield: info.dividendYield || 0,
+                    eps: info.trailingEps || 0,
+                    revenuePerShareTTM: info.revenuePerShare || 0,
+                    profitMargin: info.profitMargins || 0,
+                    operatingMarginTTM: info.operatingMargins || 0,
+                    returnOnAssetsTTM: info.returnOnAssets || 0,
+                    returnOnEquityTTM: info.returnOnEquity || 0,
+                    revenueTTM: info.totalRevenue || 0,
+                    grossProfitTTM: info.grossProfits || 0,
+                    dilutedEPSTTM: info.trailingEps || 0,
+                    quarterlyEarningsGrowthYOY:
+                        info.earningsQuarterlyGrowth || 0,
+                    quarterlyRevenueGrowthYOY: info.revenueGrowth || 0,
+                    analystTargetPrice: info.targetMeanPrice || 0,
+                    trailingPE: info.trailingPE || 0,
+                    forwardPE: info.forwardPE || 0,
+                    priceToSalesRatioTTM:
+                        info.priceToSalesTrailing12Months || 0,
+                    priceToBookRatio: info.priceToBook || 0,
+                    evToRevenue: info.enterpriseToRevenue || 0,
+                    evToEBITDA: info.enterpriseToEbitda || 0,
+                    beta: info.beta || 0,
+                    week52High: info.fiftyTwoWeekHigh || 0,
+                    week52Low: info.fiftyTwoWeekLow || 0,
+                    day50MovingAverage: info.fiftyDayAverage || 0,
+                    day200MovingAverage: info.twoHundredDayAverage || 0,
+                    sharesOutstanding: info.sharesOutstanding || 0,
+                    dividendDate: info.dividendDate || "",
+                    exDividendDate: info.exDividendDate || "",
+                });
+            }
+        }
+
+        // Return error if no API data available
+        return NextResponse.json(
+            { error: "Unable to fetch company overview from backend API" },
+            { status: 503 }
+        );
+    } catch (error) {
+        console.error("Error fetching company overview:", error);
+        return NextResponse.json(
+            { error: "Failed to fetch company overview" },
+            { status: 500 }
+        );
+    }
 }
+

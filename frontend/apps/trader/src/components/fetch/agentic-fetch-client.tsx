@@ -303,6 +303,11 @@ export function AgenticFetchClient() {
                         </div>
                     )}
 
+                    {/* Results Display */}
+                    {result && showResults && (
+                        <AgenticResults result={result} />
+                    )}
+
                     {/* Error State */}
                     {error && !isLoading && (
                         <div className="p-4 bg-[#f06c6c]/10 border border-[#f06c6c]/30 rounded-lg text-[#f06c6c]">

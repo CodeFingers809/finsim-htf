@@ -189,13 +189,13 @@ export function logApiActivity(
     details?: any
 ): void {
     const timestamp = new Date().toISOString();
-    console.log(
-        JSON.stringify({
-            timestamp,
-            userId,
-            action,
-            details,
-        })
-    );
+    // console.log(
+    //     JSON.stringify({
+    //         timestamp,
+    //         userId,
+    //         action,
+    //         details,
+    //     })
+    // );
 }
 

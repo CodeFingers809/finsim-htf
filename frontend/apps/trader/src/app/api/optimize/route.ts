@@ -112,8 +112,8 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("Optimize request:", parsed.data);
-        console.log("Backend URL:", BACKEND_URL);
+        // console.log("Optimize request:", parsed.data);
+        // console.log("Backend URL:", BACKEND_URL);
 
         const backendResponse = await fetch(`${BACKEND_URL}/optimize`, {
             method: "POST",
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
             body: JSON.stringify(parsed.data),
         });
 
-        console.log("Backend response status:", backendResponse.status);
+        // console.log("Backend response status:", backendResponse.status);
 
         if (!backendResponse.ok) {
             const errorText = await backendResponse.text();

@@ -1,5 +1,3 @@
-import { generateMockQuote } from "@/lib/mock-data";
-
 export interface Quote {
     symbol: string;
     name: string;
@@ -29,139 +27,100 @@ export interface Quote {
  */
 export async function fetchQuote(symbol: string): Promise<Quote> {
     try {
-        // Try FMP API first
-        const FMP_API_KEY = process.env.FMP_API_KEY;
-        if (FMP_API_KEY) {
-            const url = `https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${FMP_API_KEY}`;
-            const response = await fetch(url, {
-                next: { revalidate: 5 }, // Cache for 5 seconds
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    const quote = data[0];
-                    return {
-                        symbol: quote.symbol,
-                        name: quote.name,
-                        price: quote.price,
-                        changesPercentage: quote.changesPercentage,
-                        change: quote.change,
-                        dayLow: quote.dayLow,
-                        dayHigh: quote.dayHigh,
-                        yearHigh: quote.yearHigh,
-                        yearLow: quote.yearLow,
-                        marketCap: quote.marketCap,
-                        priceAvg50: quote.priceAvg50,
-                        priceAvg200: quote.priceAvg200,
-                        volume: quote.volume,
-                        avgVolume: quote.avgVolume,
-                        open: quote.open,
-                        previousClose: quote.previousClose,
-                        eps: quote.eps,
-                        pe: quote.pe,
-                        earningsAnnouncement: quote.earningsAnnouncement,
-                        sharesOutstanding: quote.sharesOutstanding,
-                        timestamp: Date.now(),
-                    };
-                }
-            }
+        // Use backend yfinance API
+        const quotes = await fetchMultipleQuotes([symbol]);
+        if (quotes.length > 0) {
+            return quotes[0];
         }
-
-        // Try Alpha Vantage as fallback
-        const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
-        if (ALPHA_VANTAGE_API_KEY) {
-            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
-            const response = await fetch(url, {
-                next: { revalidate: 5 },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const quote = data["Global Quote"];
-                if (quote) {
-                    return {
-                        symbol: quote["01. symbol"],
-                        name: symbol,
-                        price: parseFloat(quote["05. price"]),
-                        change: parseFloat(quote["09. change"]),
-                        changesPercentage: parseFloat(
-                            quote["10. change percent"].replace("%", "")
-                        ),
-                        dayLow: parseFloat(quote["04. low"]),
-                        dayHigh: parseFloat(quote["03. high"]),
-                        open: parseFloat(quote["02. open"]),
-                        previousClose: parseFloat(quote["08. previous close"]),
-                        volume: parseInt(quote["06. volume"]),
-                        yearHigh: 0,
-                        yearLow: 0,
-                        marketCap: 0,
-                        priceAvg50: 0,
-                        priceAvg200: 0,
-                        avgVolume: 0,
-                        eps: 0,
-                        pe: 0,
-                        timestamp: Date.now(),
-                    };
-                }
-            }
-        }
+        throw new Error(`No quote data available for ${symbol}`);
     } catch (error) {
         console.error("Error fetching quote:", error);
+        throw error;
     }
-
-    // Return mock data as fallback
-    return generateMockQuote(symbol);
 }
 
-/**
- * Fetch multiple stock quotes at once
- */
 export async function fetchMultipleQuotes(symbols: string[]): Promise<Quote[]> {
     try {
-        const FMP_API_KEY = process.env.FMP_API_KEY;
-        if (FMP_API_KEY) {
-            const symbolsParam = symbols.join(",");
-            const url = `https://financialmodelingprep.com/api/v3/quote/${symbolsParam}?apikey=${FMP_API_KEY}`;
-            const response = await fetch(url, {
-                next: { revalidate: 5 },
-            });
+        // Fetch each stock individually to avoid NaN parsing issues
+        const BACKEND_URL =
+            process.env.BACKEND_URL ||
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            "http://localhost:3001";
 
-            if (response.ok) {
-                const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    return data.map((quote: any) => ({
-                        symbol: quote.symbol,
-                        name: quote.name,
-                        price: quote.price,
-                        changesPercentage: quote.changesPercentage,
-                        change: quote.change,
-                        dayLow: quote.dayLow,
-                        dayHigh: quote.dayHigh,
-                        yearHigh: quote.yearHigh,
-                        yearLow: quote.yearLow,
-                        marketCap: quote.marketCap,
-                        priceAvg50: quote.priceAvg50,
-                        priceAvg200: quote.priceAvg200,
-                        volume: quote.volume,
-                        avgVolume: quote.avgVolume,
-                        open: quote.open,
-                        previousClose: quote.previousClose,
-                        eps: quote.eps,
-                        pe: quote.pe,
-                        earningsAnnouncement: quote.earningsAnnouncement,
-                        sharesOutstanding: quote.sharesOutstanding,
-                        timestamp: Date.now(),
-                    }));
+        const quotes: Quote[] = [];
+
+        // Fetch stocks one by one
+        for (const symbol of symbols) {
+            try {
+                const url = `${BACKEND_URL}/stocks/history?tickers=${symbol}&period=5d&interval=1d`;
+                const response = await fetch(url, {
+                    next: { revalidate: 60 },
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (
+                        result.status === "success" &&
+                        result.data &&
+                        result.data[symbol]
+                    ) {
+                        const stockData = result.data[symbol];
+                        const histData = stockData.data || stockData;
+                        const currency = stockData.currency || "USD";
+
+                        if (Array.isArray(histData) && histData.length > 0) {
+                            const latest = histData[histData.length - 1];
+                            const previous =
+                                histData.length > 1
+                                    ? histData[histData.length - 2]
+                                    : latest;
+
+                            const close = latest.Close ?? 0;
+                            const prevClose = previous.Close ?? close;
+
+                            // Skip if data is invalid
+                            if (
+                                !isFinite(close) ||
+                                close === 0 ||
+                                !isFinite(prevClose)
+                            ) {
+                                console.warn(
+                                    `Skipping ${symbol} - invalid data`
+                                );
+                                continue;
+                            }
+
+                            const change = close - prevClose;
+                            const changePercent =
+                                prevClose !== 0
+                                    ? (change / prevClose) * 100
+                                    : 0;
+
+                            quotes.push({
+                                symbol,
+                                lastPrice: close,
+                                change,
+                                changePercent,
+                                dayHigh: latest.High ?? close,
+                                dayLow: latest.Low ?? close,
+                                open: latest.Open ?? close,
+                                volume: latest.Volume ?? 0,
+                                previousClose: prevClose,
+                                currency,
+                            });
+                        }
+                    }
                 }
+            } catch (error) {
+                console.warn(`Error fetching ${symbol}:`, error);
             }
         }
+
+        return quotes;
     } catch (error) {
         console.error("Error fetching multiple quotes:", error);
+        throw error;
     }
-
-    // Return mock data for all symbols as fallback
-    return symbols.map((symbol) => generateMockQuote(symbol));
 }
 
 /**
@@ -173,21 +132,31 @@ export async function fetchHistoricalData(
     to?: string
 ): Promise<any[]> {
     try {
-        const FMP_API_KEY = process.env.FMP_API_KEY;
-        if (FMP_API_KEY) {
-            let url = `https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?apikey=${FMP_API_KEY}`;
-            if (from) url += `&from=${from}`;
-            if (to) url += `&to=${to}`;
+        const BACKEND_URL =
+            process.env.BACKEND_URL ||
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            "http://localhost:3001";
+        const url = `${BACKEND_URL}/stock/${symbol}/history?period=1y&interval=1d`;
 
-            const response = await fetch(url, {
-                next: { revalidate: 300 }, // Cache for 5 minutes
-            });
+        const response = await fetch(url, {
+            next: { revalidate: 300 }, // Cache for 5 minutes
+        });
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.historical && Array.isArray(data.historical)) {
-                    return data.historical;
-                }
+        if (response.ok) {
+            const result = await response.json();
+            if (
+                result.status === "success" &&
+                result.data &&
+                Array.isArray(result.data)
+            ) {
+                return result.data.map((day: any) => ({
+                    date: day.Date || day.Datetime,
+                    open: day.Open,
+                    high: day.High,
+                    low: day.Low,
+                    close: day.Close,
+                    volume: day.Volume,
+                }));
             }
         }
     } catch (error) {
