@@ -82,27 +82,37 @@ class BSEBroadcaster:
 
     def broadcast(self, payload, local_pdf_path):
         """
-        Send alert to backend, which will handle user matching and WhatsApp forwarding
+        Send alert to Next.js backend, which will:
+        1. Match announcement against user filters (keywords, categories, scrips)
+        2. Send WhatsApp alerts to matching users via port 4001
         """
         from config import BACKEND_ALERT_ENDPOINT
         
         print(f"\n📢 Broadcasting: {payload['Subject']}")
+        print(f"   Category: {payload['Category']}")
+        print(f"   Stock: {payload['Stock_Name']} ({payload['Stock_Code']})")
         
         try:
-            # Send to backend
+            # Send to Next.js backend at /api/alerts/send
             response = requests.post(
                 BACKEND_ALERT_ENDPOINT,
                 json=payload,
-                timeout=10
+                headers={"Content-Type": "application/json"},
+                timeout=30  # Longer timeout for WhatsApp sends
             )
             
             if response.status_code == 200:
                 result = response.json()
+                matched = result.get('matched_users', 0)
                 sent_count = result.get('sent_count', 0)
-                print(f"   ✅ Alert sent to {sent_count} users via backend")
+                failed_count = result.get('failed_count', 0)
+                print(f"   👥 Matched: {matched} users")
+                print(f"   ✅ Sent: {sent_count}, ❌ Failed: {failed_count}")
             else:
-                print(f"   ❌ Backend error: {response.text}")
+                print(f"   ❌ Backend error ({response.status_code}): {response.text[:200]}")
                 
+        except requests.exceptions.Timeout:
+            print(f"   ⚠️ Backend request timed out (alerts may still be processing)")
         except Exception as e:
             print(f"   ❌ Failed to send to backend: {e}")
 
